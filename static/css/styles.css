@@ -1,0 +1,28 @@
+body {
+  font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+.gradient-hero {
+  background: linear-gradient(135deg, #2a5bd7 0%, #6f86ff 50%, #9f5fff 100%);
+}
+
+.result-card {
+  background: linear-gradient(135deg, rgba(108, 117, 255, 0.1), rgba(13, 110, 253, 0.15));
+}
+
+.policy-bullet {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #2a5bd7, #9f5fff);
+}
+
+footer {
+  letter-spacing: 0.02em;
+}
+
+.btn-outline-primary:hover,
+.btn-outline-primary:focus {
+  color: #fff;
+}
