@@ -1,7 +1,11 @@
+import os
+import sys
 import unittest
 from datetime import date
 
-from policies import (
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+
+from policies import (  # noqa: E402
     RETIREMENT_POLICIES,
     RETIREMENT_SOURCE,
     FLEXIBLE_RETIREMENT_POLICY,

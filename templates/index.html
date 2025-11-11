@@ -50,6 +50,18 @@
                       >
                     </div>
                     <div class="mb-3">
+                      <label class="form-label" for="start-work">开始工作时间</label>
+                      <input
+                        type="month"
+                        class="form-control form-control-lg"
+                        id="start-work"
+                        name="start_work"
+                        required
+                        value="{{ request.form.get('start_work', '') }}"
+                      >
+                      <div class="form-text">请选择开始参加工作的年月，系统将以此计算倒计时。</div>
+                    </div>
+                    <div class="mb-3">
                       <label class="form-label">性别</label>
                       <div class="btn-group w-100" role="group">
                         <input type="radio" class="btn-check" name="gender" id="gender-male" value="male" {% if selected_gender == 'male' %}checked{% endif %}>
@@ -84,6 +96,7 @@
                     <div class="result-card p-4 rounded-4 text-center mb-4">
                       <h3 class="fw-bold text-primary mb-3">退休日期：{{ result.retirement_date.strftime('%Y年%m月%d日') }}</h3>
                       <p class="mb-2">退休年龄：{{ result.retirement_age }} 岁</p>
+                      <p class="mb-2 text-muted">倒计时起算：{{ result.start_work_date.strftime('%Y年%m月') }}</p>
                       <div class="countdown-wrapper my-4">
                         <div
                           class="countdown-circle mx-auto"
@@ -97,7 +110,7 @@
                         </div>
                       </div>
                       <p class="mb-2 text-muted">
-                        已经度过 {{ '%.1f' | format(result.percent_elapsed) }}% 的职业生涯，剩余 {{ '%.1f' | format(result.percent_remaining) }}%。
+                        自 {{ result.start_work_date.strftime('%Y年%m月') }} 起，已度过 {{ '%.1f' | format(result.percent_elapsed) }}% 的退休倒计时，剩余 {{ '%.1f' | format(result.percent_remaining) }}%。
                       </p>
                       {% if result.is_retired %}
                         <p class="fs-5 text-success">您已经超过法定退休年龄 {{ result.days_until | abs }} 天。</p>
