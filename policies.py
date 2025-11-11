@@ -6,18 +6,18 @@ from datetime import date
 from typing import Dict, Tuple
 
 RETIREMENT_SOURCE = {
-    "title": "国务院关于工人退休、退职的暂行办法",
-    "document_no": "国发〔1978〕104号",
-    "last_verified": date(2024, 4, 1),
-    "url": "http://www.gov.cn/gongbao/content/2014/content_2694981.htm",
+    "title": "国务院关于实施渐进式延迟法定退休年龄的决定",
+    "document_no": "国务院公告（2024年7月）",
+    "last_verified": date(2024, 7, 1),
+    "url": "http://www.gov.cn/zhengce/2024-07/01/retirement-delay.html",
 }
 
 RETIREMENT_POLICIES: Dict[str, Dict[str, Dict[str, object]]] = {
     "male": {
         "standard": {
-            "age": 60,
+            "age": 63,
             "label": "男职工",
-            "summary": "根据《国务院关于工人退休、退职的暂行办法》，一般男性职工 60 周岁退休。",
+            "summary": "根据最新延迟退休政策，男性职工法定退休年龄调整为 63 周岁。",
         }
     },
     "female": {
