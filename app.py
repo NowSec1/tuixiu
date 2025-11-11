@@ -8,6 +8,7 @@ from policies import (
     RETIREMENT_POLICIES,
     RETIREMENT_SOURCE,
     calculate_retirement,
+    get_flexible_policy_status,
 )
 
 app = Flask(__name__)
@@ -86,6 +87,7 @@ def index():
         policies=RETIREMENT_POLICIES,
         policy_options=policy_options,
         policy_source=RETIREMENT_SOURCE,
+        flexible_policy=get_flexible_policy_status(),
         selected_gender=selected_gender,
         selected_role=selected_role,
         default_roles=default_roles,

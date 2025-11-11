@@ -119,6 +119,32 @@
                       {% endfor %}
                     {% endfor %}
                   </ul>
+                  <div class="alert alert-info d-flex align-items-start mt-4" role="status">
+                    <div class="me-3 flex-shrink-0">
+                      <span class="badge rounded-pill text-bg-primary">新政</span>
+                    </div>
+                    <div>
+                      <h4 class="h6 fw-semibold mb-1">{{ flexible_policy.title }}</h4>
+                      <p class="mb-2 small text-muted">
+                        文号：{{ flexible_policy.document_no }} · 最近核验：{{ flexible_policy.last_verified.strftime('%Y年%m月%d日') }}
+                      </p>
+                      <p class="mb-2">{{ flexible_policy.summary }}</p>
+                      <ul class="small ps-3 mb-2">
+                        {% for highlight in flexible_policy.highlights %}
+                          <li>{{ highlight }}</li>
+                        {% endfor %}
+                      </ul>
+                      {% if flexible_policy.is_effective %}
+                        <p class="mb-0 text-success small">
+                          已于 {{ flexible_policy.effective_date.strftime('%Y年%m月%d日') }} 起实施，可向所在单位或人社部门咨询办理。
+                        </p>
+                      {% else %}
+                        <p class="mb-0 text-warning small">
+                          预计于 {{ flexible_policy.effective_date.strftime('%Y年%m月%d日') }} 生效，距离生效还有 {{ flexible_policy.days_until_effective }} 天。
+                        </p>
+                      {% endif %}
+                    </div>
+                  </div>
                   <p class="small text-muted mt-3">
                     注：若涉及特殊工种、灵活就业或延迟退休试点政策，请参考所属单位或人社部门的最新规定。
                   </p>
