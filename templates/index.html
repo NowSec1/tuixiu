@@ -84,6 +84,21 @@
                     <div class="result-card p-4 rounded-4 text-center mb-4">
                       <h3 class="fw-bold text-primary mb-3">退休日期：{{ result.retirement_date.strftime('%Y年%m月%d日') }}</h3>
                       <p class="mb-2">退休年龄：{{ result.retirement_age }} 岁</p>
+                      <div class="countdown-wrapper my-4">
+                        <div
+                          class="countdown-circle mx-auto"
+                          style="--initial: 100; --target: {{ '%.1f' | format(result.percent_remaining) }};"
+                          data-target="{{ '%.1f' | format(result.percent_remaining) }}"
+                        >
+                          <div class="countdown-circle__inner">
+                            <span class="countdown-value">100%</span>
+                            <small class="text-muted">剩余时间</small>
+                          </div>
+                        </div>
+                      </div>
+                      <p class="mb-2 text-muted">
+                        已经度过 {{ '%.1f' | format(result.percent_elapsed) }}% 的职业生涯，剩余 {{ '%.1f' | format(result.percent_remaining) }}%。
+                      </p>
                       {% if result.is_retired %}
                         <p class="fs-5 text-success">您已经超过法定退休年龄 {{ result.days_until | abs }} 天。</p>
                       {% else %}
@@ -104,6 +119,32 @@
                       {% endfor %}
                     {% endfor %}
                   </ul>
+                  <div class="alert alert-info d-flex align-items-start mt-4" role="status">
+                    <div class="me-3 flex-shrink-0">
+                      <span class="badge rounded-pill text-bg-primary">新政</span>
+                    </div>
+                    <div>
+                      <h4 class="h6 fw-semibold mb-1">{{ flexible_policy.title }}</h4>
+                      <p class="mb-2 small text-muted">
+                        文号：{{ flexible_policy.document_no }} · 最近核验：{{ flexible_policy.last_verified.strftime('%Y年%m月%d日') }}
+                      </p>
+                      <p class="mb-2">{{ flexible_policy.summary }}</p>
+                      <ul class="small ps-3 mb-2">
+                        {% for highlight in flexible_policy.highlights %}
+                          <li>{{ highlight }}</li>
+                        {% endfor %}
+                      </ul>
+                      {% if flexible_policy.is_effective %}
+                        <p class="mb-0 text-success small">
+                          已于 {{ flexible_policy.effective_date.strftime('%Y年%m月%d日') }} 起实施，可向所在单位或人社部门咨询办理。
+                        </p>
+                      {% else %}
+                        <p class="mb-0 text-warning small">
+                          预计于 {{ flexible_policy.effective_date.strftime('%Y年%m月%d日') }} 生效，距离生效还有 {{ flexible_policy.days_until_effective }} 天。
+                        </p>
+                      {% endif %}
+                    </div>
+                  </div>
                   <p class="small text-muted mt-3">
                     注：若涉及特殊工种、灵活就业或延迟退休试点政策，请参考所属单位或人社部门的最新规定。
                   </p>
@@ -149,6 +190,40 @@
 
       genderRadios.forEach(radio => radio.addEventListener('change', updateRoleOptions));
       document.addEventListener('DOMContentLoaded', updateRoleOptions);
+
+      const countdownCircle = document.querySelector('.countdown-circle');
+
+      if (countdownCircle) {
+        const target = Number.parseFloat(countdownCircle.dataset.target || '0');
+        const initial = Number.parseFloat(countdownCircle.style.getPropertyValue('--initial') || '100');
+        const valueEl = countdownCircle.querySelector('.countdown-value');
+
+        const clampPercent = value => Math.max(0, Math.min(100, value));
+        const duration = 1500;
+
+        countdownCircle.style.setProperty('--progress', clampPercent(initial));
+        if (valueEl) {
+          valueEl.textContent = `${clampPercent(initial).toFixed(1)}%`;
+        }
+
+        const start = performance.now();
+
+        const animate = now => {
+          const elapsed = now - start;
+          const progress = Math.min(elapsed / duration, 1);
+          const current = clampPercent(initial + (target - initial) * progress);
+          countdownCircle.style.setProperty('--progress', current);
+          if (valueEl) {
+            valueEl.textContent = `${current.toFixed(1)}%`;
+          }
+
+          if (progress < 1) {
+            requestAnimationFrame(animate);
+          }
+        };
+
+        requestAnimationFrame(animate);
+      }
     </script>
   </body>
 </html>

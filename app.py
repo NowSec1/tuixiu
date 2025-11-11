@@ -8,6 +8,7 @@ from policies import (
     RETIREMENT_POLICIES,
     RETIREMENT_SOURCE,
     calculate_retirement,
+    get_flexible_policy_status,
 )
 
 app = Flask(__name__)
@@ -28,12 +29,29 @@ def index():
             if birth_date > date.today():
                 raise ValueError("出生日期不能晚于今天")
             retirement_date, retirement_age = calculate_retirement(birth_date, gender, role)
-            days_until = (retirement_date - date.today()).days
+            today = date.today()
+            days_until = (retirement_date - today).days
+            total_days = (retirement_date - birth_date).days
+            days_elapsed = (today - birth_date).days
+
+            if total_days <= 0:
+                percent_remaining = 0.0
+            else:
+                remaining_days = max(days_until, 0)
+                percent_remaining = max(
+                    0.0,
+                    min(100.0, (remaining_days / total_days) * 100),
+                )
+
             result = {
                 "retirement_date": retirement_date,
                 "retirement_age": retirement_age,
                 "days_until": days_until,
                 "is_retired": days_until < 0,
+                "total_days": total_days,
+                "days_elapsed": days_elapsed,
+                "percent_remaining": percent_remaining,
+                "percent_elapsed": max(0.0, min(100.0, 100.0 - percent_remaining)),
             }
         except ValueError as exc:
             error_message = str(exc)
@@ -69,6 +87,7 @@ def index():
         policies=RETIREMENT_POLICIES,
         policy_options=policy_options,
         policy_source=RETIREMENT_SOURCE,
+        flexible_policy=get_flexible_policy_status(),
         selected_gender=selected_gender,
         selected_role=selected_role,
         default_roles=default_roles,

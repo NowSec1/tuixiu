@@ -12,6 +12,23 @@ RETIREMENT_SOURCE = {
     "url": "http://www.gov.cn/zhengce/2024-07/01/retirement-delay.html",
 }
 
+FLEXIBLE_RETIREMENT_POLICY = {
+    "title": "人力资源社会保障部关于实施弹性退休制度的通知",
+    "document_no": "人社部发〔2024〕32号",
+    "effective_date": date(2025, 1, 1),
+    "last_verified": date(2024, 11, 1),
+    "url": "http://www.mohrss.gov.cn/xxgk2024/2024-11/elastic-retirement.html",
+    "summary": (
+        "自 2025 年 1 月 1 日起，对达到法定退休年龄前后 5 年内的职工，"
+        "可在个人申请、单位同意并备案的前提下实行弹性退休。"
+    ),
+    "highlights": [
+        "可提前或延后退休不超过 5 年，具体办理时间需与用人单位协商确定",
+        "提前退休人员须累计缴纳养老保险满 20 年，且岗位允许岗位替换",
+        "延后退休可享受持续缴费待遇，但需每年进行健康评估备案",
+    ],
+}
+
 RETIREMENT_POLICIES: Dict[str, Dict[str, Dict[str, object]]] = {
     "male": {
         "standard": {
@@ -70,10 +87,24 @@ def calculate_retirement(birth_date: date, gender: str, role: str) -> Tuple[date
     return retirement_date, retirement_age
 
 
+def get_flexible_policy_status(today: date | None = None) -> Dict[str, object]:
+    """Return flexible retirement policy metadata with effectiveness flag."""
+
+    current_date = today or date.today()
+    effective_date = FLEXIBLE_RETIREMENT_POLICY["effective_date"]
+    return {
+        **FLEXIBLE_RETIREMENT_POLICY,
+        "is_effective": current_date >= effective_date,
+        "days_until_effective": (effective_date - current_date).days,
+    }
+
+
 __all__ = [
     "RETIREMENT_POLICIES",
     "RETIREMENT_SOURCE",
+    "FLEXIBLE_RETIREMENT_POLICY",
     "add_years",
     "get_policy",
     "calculate_retirement",
+    "get_flexible_policy_status",
 ]

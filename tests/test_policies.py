@@ -1,7 +1,13 @@
 import unittest
 from datetime import date
 
-from policies import RETIREMENT_POLICIES, RETIREMENT_SOURCE, calculate_retirement
+from policies import (
+    RETIREMENT_POLICIES,
+    RETIREMENT_SOURCE,
+    FLEXIBLE_RETIREMENT_POLICY,
+    calculate_retirement,
+    get_flexible_policy_status,
+)
 
 
 class TestRetirementPolicy(unittest.TestCase):
@@ -21,6 +27,25 @@ class TestRetirementPolicy(unittest.TestCase):
         retirement_date, age = calculate_retirement(birth, "male", "standard")
         self.assertEqual(age, 63)
         self.assertEqual(retirement_date, expected)
+
+    def test_flexible_policy_effectiveness_flag(self):
+        policy = get_flexible_policy_status(today=date(2024, 12, 31))
+        self.assertFalse(policy["is_effective"])
+        self.assertEqual(policy["days_until_effective"], 1)
+
+        policy_effective = get_flexible_policy_status(today=date(2025, 1, 1))
+        self.assertTrue(policy_effective["is_effective"])
+        self.assertEqual(policy_effective["days_until_effective"], 0)
+
+    def test_flexible_policy_metadata(self):
+        self.assertEqual(
+            FLEXIBLE_RETIREMENT_POLICY["document_no"],
+            "人社部发〔2024〕32号",
+        )
+        self.assertEqual(
+            FLEXIBLE_RETIREMENT_POLICY["effective_date"],
+            date(2025, 1, 1),
+        )
 
 
 if __name__ == "__main__":
