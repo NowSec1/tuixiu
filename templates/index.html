@@ -199,11 +199,19 @@
         const valueEl = countdownCircle.querySelector('.countdown-value');
 
         const clampPercent = value => Math.max(0, Math.min(100, value));
-        const duration = 1500;
+        const clampScalar = (value, min, max) => Math.min(Math.max(value, min), max);
+        const setEdgeAngle = value => {
+          const angle = clampPercent(value) * 3.6;
+          countdownCircle.style.setProperty('--edge-angle', `${angle.toFixed(2)}deg`);
+        };
 
-        countdownCircle.style.setProperty('--progress', clampPercent(initial));
+        const duration = 1500;
+        const initialProgress = clampPercent(initial);
+        countdownCircle.style.setProperty('--progress', initialProgress);
+        setEdgeAngle(initialProgress);
+
         if (valueEl) {
-          valueEl.textContent = `${clampPercent(initial).toFixed(1)}%`;
+          valueEl.textContent = `${initialProgress.toFixed(1)}%`;
         }
 
         const start = performance.now();
@@ -213,6 +221,8 @@
           const progress = Math.min(elapsed / duration, 1);
           const current = clampPercent(initial + (target - initial) * progress);
           countdownCircle.style.setProperty('--progress', current);
+          setEdgeAngle(current);
+
           if (valueEl) {
             valueEl.textContent = `${current.toFixed(1)}%`;
           }
@@ -222,7 +232,19 @@
           }
         };
 
+        const flowLoop = now => {
+          const time = now * 0.001;
+          const orbit = ((time * 45) % 360).toFixed(2);
+          const glow = clampScalar(0.38 + Math.sin(time * 1.2) * 0.18, 0.22, 0.7);
+          const halo = clampScalar(0.14 + Math.sin(time * 0.9 + Math.PI / 3) * 0.12, 0.08, 0.32);
+          countdownCircle.style.setProperty('--orbit', `${orbit}deg`);
+          countdownCircle.style.setProperty('--glow', glow.toFixed(3));
+          countdownCircle.style.setProperty('--halo', halo.toFixed(3));
+          requestAnimationFrame(flowLoop);
+        };
+
         requestAnimationFrame(animate);
+        requestAnimationFrame(flowLoop);
       }
     </script>
   </body>

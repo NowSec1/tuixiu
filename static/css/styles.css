@@ -37,18 +37,71 @@ footer {
   --progress: 100;
   --accent: #0d6efd;
   --track: rgba(13, 110, 253, 0.12);
+  --orbit: 0deg;
+  --edge-angle: 0deg;
+  --glow: 0.45;
+  --halo: 0.18;
   width: 180px;
   height: 180px;
   border-radius: 50%;
-  background: conic-gradient(var(--accent) calc(var(--progress) * 1%), var(--track) 0);
+  position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
-  position: relative;
-  transition: background 0.3s ease;
+  background:
+    conic-gradient(var(--accent) calc(var(--progress) * 1%), var(--track) 0),
+    conic-gradient(
+      from calc(var(--edge-angle) + var(--orbit)),
+      rgba(255, 255, 255, 0.55) 0deg,
+      rgba(255, 255, 255, 0.08) 14deg,
+      rgba(255, 255, 255, 0) 36deg,
+      rgba(255, 255, 255, 0) 360deg
+    ),
+    radial-gradient(circle at 50% 50%, rgba(13, 110, 253, 0.12), transparent 70%);
+  background-blend-mode: normal, screen, normal;
+  box-shadow:
+    0 0 calc(36px * var(--glow)) rgba(13, 110, 253, 0.28),
+    inset 0 0 calc(18px * var(--glow)) rgba(13, 110, 253, 0.32);
+  overflow: hidden;
+  transition: background 0.4s ease, box-shadow 0.5s ease;
+}
+
+.countdown-circle::before,
+.countdown-circle::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.countdown-circle::before {
+  background: repeating-conic-gradient(
+      from calc(var(--edge-angle) + var(--orbit)),
+      rgba(255, 255, 255, 0.35) 0deg,
+      rgba(255, 255, 255, 0.12) 5deg,
+      rgba(255, 255, 255, 0) 12deg,
+      rgba(255, 255, 255, 0) 25deg
+    );
+  mix-blend-mode: screen;
+  -webkit-mask: radial-gradient(circle at 50% 50%, transparent 58%, rgba(0, 0, 0, 0.9) 66%);
+  mask: radial-gradient(circle at 50% 50%, transparent 58%, rgba(0, 0, 0, 0.9) 66%);
+  opacity: 0.9;
+  transition: opacity 0.3s ease;
+  z-index: 1;
+}
+
+.countdown-circle::after {
+  inset: -20%;
+  background: radial-gradient(circle at 50% 50%, rgba(13, 110, 253, 0.38), transparent 65%);
+  opacity: var(--halo);
+  transition: opacity 0.4s ease;
+  z-index: 0;
 }
 
 .countdown-circle__inner {
+  position: relative;
+  z-index: 2;
   width: 75%;
   height: 75%;
   border-radius: 50%;
