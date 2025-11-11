@@ -1,46 +1,16 @@
 from __future__ import annotations
 
 from datetime import date, datetime
-from typing import Dict, Tuple
 
 from flask import Flask, render_template, request
 
+from policies import (
+    RETIREMENT_POLICIES,
+    RETIREMENT_SOURCE,
+    calculate_retirement,
+)
+
 app = Flask(__name__)
-
-
-RETIREMENT_POLICIES: Dict[str, Dict[str, int]] = {
-    "male": {"standard": 60},
-    "female": {"cadre": 55, "worker": 50},
-}
-
-
-def add_years(base_date: date, years: int) -> date:
-    """Add years to a date while keeping leap day reasonable."""
-    try:
-        return base_date.replace(year=base_date.year + years)
-    except ValueError:
-        # Handle February 29 for non-leap retirement years by moving to February 28.
-        return base_date.replace(month=2, day=28, year=base_date.year + years)
-
-
-def calculate_retirement(birth_date: date, gender: str, role: str) -> Tuple[date, int]:
-    """Calculate retirement date and retirement age according to policy."""
-    gender_key = gender.lower()
-    role_key = role.lower()
-    policies = RETIREMENT_POLICIES.get(gender_key)
-
-    if not policies:
-        raise ValueError("未知的性别选项")
-
-    if len(policies) == 1:
-        retirement_age = next(iter(policies.values()))
-    else:
-        retirement_age = policies.get(role_key)
-        if retirement_age is None:
-            raise ValueError("未知的岗位类型")
-
-    retirement_date = add_years(birth_date, retirement_age)
-    return retirement_date, retirement_age
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -68,11 +38,40 @@ def index():
         except ValueError as exc:
             error_message = str(exc)
 
+    policy_options = {
+        gender: [
+            {
+                "value": role_key,
+                "label": f"{policy['label']}（{policy['age']} 岁）",
+            }
+            for role_key, policy in gender_policies.items()
+        ]
+        for gender, gender_policies in RETIREMENT_POLICIES.items()
+    }
+
+    default_roles = {
+        gender: next(iter(gender_policies.keys()))
+        for gender, gender_policies in RETIREMENT_POLICIES.items()
+    }
+    selected_gender = request.form.get("gender", "male")
+    if selected_gender not in RETIREMENT_POLICIES:
+        selected_gender = next(iter(RETIREMENT_POLICIES.keys()))
+
+    selected_role = request.form.get("role") or default_roles.get(selected_gender, "standard")
+    valid_roles = {option["value"] for option in policy_options[selected_gender]}
+    if selected_role not in valid_roles:
+        selected_role = default_roles[selected_gender]
+
     return render_template(
         "index.html",
         result=result,
         error_message=error_message,
         policies=RETIREMENT_POLICIES,
+        policy_options=policy_options,
+        policy_source=RETIREMENT_SOURCE,
+        selected_gender=selected_gender,
+        selected_role=selected_role,
+        default_roles=default_roles,
     )
 
 

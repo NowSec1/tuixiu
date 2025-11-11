@@ -18,7 +18,9 @@
             <div class="col-lg-8 text-center">
               <h1 class="display-5 fw-bold mb-3">中国退休时间智能计算器</h1>
               <p class="lead">
-                根据出生日期与岗位类型，快速了解自己距离退休还有多久。政策参考依据为：男性 60 岁、女干部 55 岁、女工人 50 岁。
+                根据出生日期与岗位类型，快速了解自己距离退休还有多久。政策数据来自
+                《{{ policy_source.title }}》（{{ policy_source.document_no }}），最近核验日期：
+                {{ policy_source.last_verified.strftime('%Y年%m月%d日') }}。
               </p>
             </div>
           </div>
@@ -50,21 +52,20 @@
                     <div class="mb-3">
                       <label class="form-label">性别</label>
                       <div class="btn-group w-100" role="group">
-                        <input type="radio" class="btn-check" name="gender" id="gender-male" value="male" {% if request.form.get('gender', 'male') == 'male' %}checked{% endif %}>
+                        <input type="radio" class="btn-check" name="gender" id="gender-male" value="male" {% if selected_gender == 'male' %}checked{% endif %}>
                         <label class="btn btn-outline-primary" for="gender-male">男</label>
-                        <input type="radio" class="btn-check" name="gender" id="gender-female" value="female" {% if request.form.get('gender') == 'female' %}checked{% endif %}>
+                        <input type="radio" class="btn-check" name="gender" id="gender-female" value="female" {% if selected_gender == 'female' %}checked{% endif %}>
                         <label class="btn btn-outline-primary" for="gender-female">女</label>
                       </div>
                     </div>
                     <div class="mb-4">
                       <label class="form-label" for="role">岗位类型</label>
                       <select class="form-select form-select-lg" id="role" name="role">
-                        {% if request.form.get('gender', 'male') == 'male' %}
-                          <option value="standard" selected>男职工（60 岁）</option>
-                        {% else %}
-                          <option value="cadre" {% if request.form.get('role', 'cadre') == 'cadre' %}selected{% endif %}>女干部（55 岁）</option>
-                          <option value="worker" {% if request.form.get('role') == 'worker' %}selected{% endif %}>女工人（50 岁）</option>
-                        {% endif %}
+                        {% for option in policy_options[selected_gender] %}
+                          <option value="{{ option.value }}" {% if selected_role == option.value %}selected{% endif %}>
+                            {{ option.label }}
+                          </option>
+                        {% endfor %}
                       </select>
                       <div class="form-text">女性岗位类型仅在选择女性时展示。</div>
                     </div>
@@ -94,18 +95,14 @@
                   {% endif %}
                   <h3 class="h5 fw-semibold">政策提示</h3>
                   <ul class="list-unstyled ms-1">
-                    <li class="d-flex align-items-start mb-2">
-                      <span class="policy-bullet me-2 mt-1"></span>
-                      男职工的法定退休年龄为 60 周岁。
-                    </li>
-                    <li class="d-flex align-items-start mb-2">
-                      <span class="policy-bullet me-2 mt-1"></span>
-                      女干部的法定退休年龄为 55 周岁。
-                    </li>
-                    <li class="d-flex align-items-start">
-                      <span class="policy-bullet me-2 mt-1"></span>
-                      女工人的法定退休年龄为 50 周岁。
-                    </li>
+                    {% for gender_policies in policies.values() %}
+                      {% for policy in gender_policies.values() %}
+                        <li class="d-flex align-items-start mb-2">
+                          <span class="policy-bullet me-2 mt-1"></span>
+                          {{ policy.summary }}
+                        </li>
+                      {% endfor %}
+                    {% endfor %}
                   </ul>
                   <p class="small text-muted mt-3">
                     注：若涉及特殊工种、灵活就业或延迟退休试点政策，请参考所属单位或人社部门的最新规定。
@@ -119,7 +116,7 @@
 
       <footer class="py-4 bg-dark text-white-50">
         <div class="container text-center small">
-          数据来源：人力资源和社会保障部公布的现行退休政策，仅供参考。
+          数据来源：<a class="link-light" href="{{ policy_source.url }}" target="_blank" rel="noopener">{{ policy_source.title }}（{{ policy_source.document_no }}）</a>，最近核验：{{ policy_source.last_verified.strftime('%Y年%m月%d日') }}。
         </div>
       </footer>
     </main>
@@ -127,26 +124,27 @@
     <script>
       const genderRadios = document.querySelectorAll('input[name="gender"]');
       const roleSelect = document.getElementById('role');
-
-      const femaleOptions = `
-        <option value="cadre">女干部（55 岁）</option>
-        <option value="worker">女工人（50 岁）</option>
-      `;
-
-      const maleOptions = `
-        <option value="standard">男职工（60 岁）</option>
-      `;
+      const policyOptions = {{ policy_options | tojson }};
+      const serverSelectedRole = {{ selected_role | tojson }};
+      const defaultRoles = {{ default_roles | tojson }};
+      const initialGender = {{ selected_gender | tojson }};
 
       const updateRoleOptions = () => {
         if (!roleSelect) return;
         const gender = document.querySelector('input[name="gender"]:checked').value;
-        roleSelect.innerHTML = gender === 'female' ? femaleOptions : maleOptions;
-        if (gender === 'female') {
-          const selectedRole = "{{ request.form.get('role', 'cadre') }}" || 'cadre';
-          roleSelect.value = selectedRole;
-        } else {
-          roleSelect.value = 'standard';
-        }
+        const options = policyOptions[gender] || [];
+        roleSelect.innerHTML = options
+          .map(option => `<option value="${option.value}">${option.label}</option>`)
+          .join('');
+
+        const defaultRole = defaultRoles[gender] || 'standard';
+        const candidateRole = gender === initialGender
+          ? serverSelectedRole
+          : defaultRole;
+
+        roleSelect.value = options.some(option => option.value === candidateRole)
+          ? candidateRole
+          : defaultRole;
       };
 
       genderRadios.forEach(radio => radio.addEventListener('change', updateRoleOptions));
