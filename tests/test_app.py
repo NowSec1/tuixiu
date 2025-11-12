@@ -12,6 +12,32 @@ class TestAppFormValidation(unittest.TestCase):
     def setUp(self):
         self.client = app.test_client()
 
+    def test_requires_birthdate(self):
+        response = self.client.post(
+            "/",
+            data={
+                "birthdate": "",
+                "start_work": "2010-01",
+                "gender": "male",
+                "role": "standard",
+            },
+            follow_redirects=True,
+        )
+        self.assertIn("请填写出生日期", response.get_data(as_text=True))
+
+    def test_birthdate_format_validation(self):
+        response = self.client.post(
+            "/",
+            data={
+                "birthdate": "1990/01/01",
+                "start_work": "2010-01",
+                "gender": "male",
+                "role": "standard",
+            },
+            follow_redirects=True,
+        )
+        self.assertIn("出生日期格式不正确，请选择完整日期", response.get_data(as_text=True))
+
     def test_requires_start_work_month(self):
         response = self.client.post(
             "/",

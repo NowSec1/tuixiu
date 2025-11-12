@@ -26,7 +26,14 @@ def index():
         start_work_input = request.form.get("start_work", "").strip()
 
         try:
-            birth_date = datetime.strptime(birth_input, "%Y-%m-%d").date()
+            if not birth_input:
+                raise ValueError("请填写出生日期")
+
+            try:
+                birth_date = datetime.strptime(birth_input, "%Y-%m-%d").date()
+            except ValueError as exc:
+                raise ValueError("出生日期格式不正确，请选择完整日期") from exc
+
             if birth_date > date.today():
                 raise ValueError("出生日期不能晚于今天")
             if not start_work_input:
